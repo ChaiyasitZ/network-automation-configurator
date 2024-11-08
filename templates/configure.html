@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Output</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Configuration Output</h1>
+
+        <form action="{{ url_for('configure') }}" method="POST">
+            <label>Configuration Commands:</label>
+            <textarea name="config_commands" rows="5" required></textarea><br>
+
+            <button type="submit">Apply Config</button>
+        </form>
+
+        {% if output %}
+            <pre>{{ output }}</pre>
+        {% endif %}
+
+        <a href="{{ url_for('index') }}">Back</a>
+    </div>
+</body>
+</html>
