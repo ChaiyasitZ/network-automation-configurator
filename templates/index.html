@@ -3,100 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Network Device Configuration</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .container {
-            margin-top: 30px;
-        }
-        .card-header {
-            background-color: #007bff;
-            color: white;
-        }
-    </style>
+    <title>Network Device Configurator</title>
+    <link rel="stylesheet" href="static/styles.css">
 </head>
 <body>
     <div class="container">
-        <h1 class="text-center">Network Device Configuration</h1>
-        
-        <!-- Connection Details Card -->
-        <div class="card mb-4">
-            <div class="card-header">Connect to Device</div>
-            <div class="card-body">
-                <form id="connection-form">
-                    <div class="mb-3">
-                        <label for="ip" class="form-label">Device IP</label>
-                        <input type="text" class="form-control" id="ip" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Connect</button>
-                    <div id="connection-status" class="mt-3"></div>
-                </form>
-            </div>
+        <h1>Network Device Configurator</h1>
+
+        <!-- Connection Form -->
+        <form id="connect-form">
+            <label for="ip">IP Address:</label>
+            <input type="text" id="ip" required>
+            <label for="username">Username:</label>
+            <input type="text" id="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" required>
+            <button type="submit">Connect</button>
+        </form>
+
+        <!-- Command Form -->
+        <div id="command-form" style="display:none;">
+            <h2>Execute Command</h2>
+            <label for="command">Enter Command:</label>
+            <textarea id="command" rows="3" placeholder="e.g., configure terminal\nhostname Router1"></textarea>
+            <button onclick="executeCommand()">Run Command</button>
         </div>
 
-        <!-- Configuration Options Card -->
-        <div class="card mb-4">
-            <div class="card-header">Device Configuration</div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label for="command" class="form-label">Command</label>
-                    <input type="text" class="form-control" id="command" placeholder="Enter command" required>
-                </div>
-                <button type="button" class="btn btn-success" onclick="sendCommand()">Execute Command</button>
-            </div>
-        </div>
-
-        <!-- Output Section -->
-        <div class="card">
-            <div class="card-header">Command Output</div>
-            <div class="card-body">
-                <pre id="output"></pre>
-            </div>
-        </div>
+        <h2>Command Output:</h2>
+        <pre id="output"></pre>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        // Handle form submission for device connection
-        document.getElementById('connection-form').addEventListener('submit', function(event) {
-            event.preventDefault();
+        $('#connect-form').submit(function (e) {
+            e.preventDefault();
+            var ip = $('#ip').val();
+            var username = $('#username').val();
+            var password = $('#password').val();
 
-            const ip = document.getElementById('ip').value;
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
-            axios.post('/connect', { ip, username, password })
-                .then(response => {
-                    document.getElementById('connection-status').innerText = response.data.status;
-                })
-                .catch(error => {
-                    document.getElementById('connection-status').innerText = error.response.data.status;
-                });
+            $.ajax({
+                url: '/connect',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ ip: ip, username: username, password: password }),
+                success: function (response) {
+                    alert(response.status);
+                    $('#connect-form').hide();
+                    $('#command-form').show();
+                },
+                error: function (error) {
+                    alert(error.responseJSON.status);
+                }
+            });
         });
 
-        // Send command to execute on the device
-        function sendCommand() {
-            const command = document.getElementById('command').value;
-
-            axios.post('/execute_command', { command })
-                .then(response => {
-                    document.getElementById('output').innerText = response.data.output;
-                })
-                .catch(error => {
-                    document.getElementById('output').innerText = error.response.data.output;
-                });
+        function executeCommand() {
+            var command = $('#command').val();
+            $.ajax({
+                url: '/execute_command',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ command: command }),
+                success: function (response) {
+                    $('#output').text(response.output);
+                },
+                error: function (error) {
+                    $('#output').text(error.responseJSON.output);
+                }
+            });
         }
     </script>
 </body>
